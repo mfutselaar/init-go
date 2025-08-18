@@ -1,0 +1,63 @@
+{
+    "runner": {
+        "command": "bash",
+        "args": [
+            "-c"
+        ]
+    },
+    "after-commands": [
+        "git init .",
+        "git add .",
+        "git commit -m 'init'"
+    ],
+    "types": [
+        {
+            "type": "web",
+            "files": [
+                ["https://raw.githubusercontent.com/mfutselaar/codequality-laravel/refs/heads/main/.editorconfig", ".editorconfig"]
+            ]
+        },
+        {
+            "type": "php",
+            "parent": "web",
+            "commands": [
+                "composer init"
+            ],
+            "files": [
+                ["https://raw.githubusercontent.com/mfutselaar/codequality-laravel/refs/heads/main/.gitignore", ".gitignore"]
+            ]
+        },
+        {
+            "type": "laravel",
+            "commands": [
+                "composer create-project laravel/laravel ."
+            ],
+            "parent": {
+                "type": "php",
+                "run-commands": false
+            },
+            "files": [
+                ["https://raw.githubusercontent.com/mfutselaar/codequality-laravel/refs/heads/main/grumphp.yml", "grumphp.yml"],
+                ["https://raw.githubusercontent.com/mfutselaar/codequality-laravel/refs/heads/main/phpstan.neon", "phpstan.neon"],
+                ["https://raw.githubusercontent.com/mfutselaar/codequality-laravel/refs/heads/main/pint.json", "pint.json"]
+            ]            
+        },
+        {
+            "type": "test",
+            "commands": [
+                "ls -alF"
+            ],
+            "parent": {
+                "type": "php",
+                "run-commands": true
+            }
+        },
+        {
+            "type": "go",
+            "commands": [
+                "go mod init mfutselaar/$(basename $PWD)",
+                "echo $(basename $PWD) > .gitignore"
+            ]
+        }
+    ]
+}

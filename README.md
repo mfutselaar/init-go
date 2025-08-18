@@ -46,7 +46,7 @@ a selector.
         {
             "type": "web",
             "files": [
-                ["https://raw.githubusercontent.com/mfutselaar/codequality-laravel/refs/heads/main/.editorconfig", ".editorconfig"]
+                ["$HOME/code/.editorconfig", ".editorconfig"]
             ]
         },
         {
@@ -80,7 +80,7 @@ a selector.
                 "go mod init mfutselaar/$(basename $PWD)",
                 "echo $(basename $PWD) > .gitignore"
             ]
-        }
+        },
     ]
 }
 ```

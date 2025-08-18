@@ -20,6 +20,7 @@ const keys string = "1234567890abcdefghijklmnoprstuvwxyz"
 
 var (
 	skipAfterCommands bool = false
+	envKvArray        []string
 )
 
 type Config struct {
@@ -43,6 +44,19 @@ type ProjectType struct {
 	Parent   *Parent    `json:"parent"`
 	Files    [][]string `json:"files"`
 	Commands []string   `json:"commands"`
+}
+
+func parseString(s string) string {
+	if len(envKvArray) == 0 {
+		for _, kvp := range os.Environ() {
+			split := strings.Split(kvp, "=")
+			if len(split) == 2 {
+				envKvArray = append(envKvArray, "$"+split[0], split[1])
+			}
+		}
+	}
+	replacer := strings.NewReplacer(envKvArray...)
+	return replacer.Replace(s)
 }
 
 func (p *Parent) UnmarshalJSON(data []byte) error {
@@ -149,7 +163,7 @@ func (c *Config) ExecuteCommands(pt *ProjectType) {
 	fmt.Printf("\n* Running commands for %s:\n\n", pt.Type)
 
 	for _, command := range pt.Commands {
-		cmd := exec.Command(c.Runner.Command, append(c.Runner.Args, command)...)
+		cmd := exec.Command(c.Runner.Command, append(c.Runner.Args, parseString(command))...)
 		cmd.Stdin = os.Stdin
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
@@ -180,7 +194,7 @@ func (c *Config) CopyFiles(pt *ProjectType) {
 		target := file[1]
 		fmode := os.FileMode(0644)
 
-		targetPath := path.Dir(target)
+		targetPath := path.Dir(parseString(target))
 
 		var sourceData []byte
 
@@ -213,6 +227,7 @@ func (c *Config) CopyFiles(pt *ProjectType) {
 			}
 
 		} else {
+			sourcePath = parseString(sourcePath)
 			fmt.Printf("  * Reading %s: ", sourcePath)
 
 			fileInfo, err := os.Stat(sourcePath)
@@ -263,7 +278,7 @@ func (pt *ProjectType) Create(c *Config) {
 
 	fmt.Print("\n* Running after commands:\n\n")
 	for _, command := range c.AfterCommands {
-		cmd := exec.Command(c.Runner.Command, append(c.Runner.Args, command)...)
+		cmd := exec.Command(c.Runner.Command, append(c.Runner.Args, parseString(command))...)
 		cmd.Stdin = os.Stdin
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
@@ -306,10 +321,10 @@ func main() {
 				fmt.Println(" * $HOME/.init-go/config.json")
 				fmt.Println(" * /etc/init-go.json")
 				fmt.Println()
-			
+
 				return
 			} else {
-			createType = os.Args[index]
+				createType = os.Args[index]
 			}
 		}
 	}

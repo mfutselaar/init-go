@@ -84,7 +84,9 @@ func (p *Parent) UnmarshalJSON(data []byte) error {
 func (pt *ProjectType) UnmarshalJSON(data []byte) error {
 	type Alias ProjectType
 	aux := &struct {
-		Parent json.RawMessage `json:"parent"`
+		Parent   json.RawMessage `json:"parent"`
+		Files    json.RawMessage `json:"files"`
+		Commands json.RawMessage `json:"commands"`
 		*Alias
 	}{
 		Alias: (*Alias)(pt),
@@ -92,6 +94,26 @@ func (pt *ProjectType) UnmarshalJSON(data []byte) error {
 
 	if err := json.Unmarshal(data, &aux); err != nil {
 		return err
+	}
+
+	if len(aux.Files) > 0 {
+		var files [][]string
+
+		if err := json.Unmarshal(aux.Files, &files); err == nil {
+			pt.Files = files
+		} else {
+			pt.Files = [][]string{}
+		}
+	}
+
+	if len(aux.Commands) > 0 {
+		var commands []string
+
+		if err := json.Unmarshal(aux.Commands, &commands); err == nil {
+			pt.Commands = commands
+		} else {
+			pt.Commands = []string{}
+		}
 	}
 
 	if len(aux.Parent) > 0 {
